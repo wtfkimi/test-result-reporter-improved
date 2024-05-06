@@ -55,13 +55,23 @@ function getMainPayload() {
 
 function setMainBlock({ result, target, payload }) {
   let text = `*${getTitleText(result, target)}*\n`;
+  const isExistingBug = (function(){
+    return result.suites[0]?.cases.reduce((prev, curr, i, arr) => {
+      if (curr.meta_data) {
+        prev.push(...curr.meta_data.values());
+        return prev;
+      }
+    }, [])?.filter(el => el.startsWith('AA-'));
+  })();
+
   text += `\n*Results*: ${getResultText(result)}`;
   text += `\n*Duration*: ${getPrettyDuration(result.duration, target.inputs.duration)}`;
   payload.blocks.push({
     "type": "section",
     "text": {
       "type": "mrkdwn",
-      "text": text
+      "text": text + `\n*Existing bug*: ${isExistingBug.length > 0 ? isExistingBug.length : 0}\n` +
+          `*Names:* ${isExistingBug.length > 0 ? isExistingBug.join(", ") : 'No existing bugs found'}`
     }
   });
 }
